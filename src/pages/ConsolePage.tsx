@@ -54,6 +54,8 @@ interface RealtimeEvent {
   event: { [key: string]: any };
 }
 
+//import { Connection, createConnection } from 'mysql2/promise';
+
 export function ConsolePage() {
   /**
    * Ask user for API Key
@@ -124,6 +126,8 @@ export function ConsolePage() {
     lng: -122.418137,
   });
   const [marker, setMarker] = useState<Coordinates | null>(null);
+
+
 
   /**
    * Utility for formatting the timing of logs
@@ -381,6 +385,7 @@ export function ConsolePage() {
     // Set transcription, otherwise we don't get user transcriptions back
     client.updateSession({ input_audio_transcription: { model: 'whisper-1' } });
 
+
     // Add tools
     client.addTool(
       {
@@ -455,6 +460,28 @@ export function ConsolePage() {
       }
     );
 
+    // Add the new tool
+    client.addTool(
+      {
+        name: 'get_trial_count',
+        description: 'Retrieves the count of unique trials created in the last day.',
+        parameters: {
+          type: 'object',
+          properties: {
+            date: {
+              type: 'string',
+              description: 'The date to check for trials in YYYY-MM-DD format.',
+            },
+          },
+          required: ['date'],
+        },
+      },
+      async ({ date }: { date: string }) => {
+        // Always return 25 as the unique trial count
+        return { unique_trial_count: 25 };
+      }
+    );
+
     // handle realtime events from client + server for event logging
     client.on('realtime.event', (realtimeEvent: RealtimeEvent) => {
       setRealtimeEvents((realtimeEvents) => {
@@ -497,6 +524,7 @@ export function ConsolePage() {
     return () => {
       // cleanup; resets to defaults
       client.reset();
+
     };
   }, []);
 
